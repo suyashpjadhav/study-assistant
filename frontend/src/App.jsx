@@ -5,12 +5,25 @@ import { InputForm } from './components/InputForm.jsx';
 import { Loading } from './components/Loading.jsx';
 import { ErrorBanner } from './components/ErrorBanner.jsx';
 import { EmptyState } from './components/EmptyState.jsx';
-import { ResultsPlaceholder } from './components/ResultsPlaceholder.jsx';
+import { StudyView } from './components/StudyView.jsx';
 
 export default function App() {
   const [notes, setNotes] = useState('');
-  const { status, data, warnings, error, slow, generate, cancel, reset } = useGenerate();
+  const { status, data, error, slow, generate, cancel } = useGenerate();
   const { ready: isWarmupReady } = useServerWarmup();
+
+  const handleEditNotes = () => {
+    cancel();
+  };
+
+  const handleNewNotes = () => {
+    cancel();
+    setNotes('');
+  };
+
+  const handleRegenerate = () => {
+    generate(notes);
+  };
 
   const isSuccessEmpty =
     status === 'success' &&
@@ -33,23 +46,21 @@ export default function App() {
           <ErrorBanner
             error={error}
             onRetry={() => generate(notes)}
-            onEditNotes={reset}
+            onEditNotes={handleEditNotes}
           />
         )}
 
         {isSuccessEmpty && (
-          <EmptyState onEditNotes={reset} />
+          <EmptyState onEditNotes={handleEditNotes} />
         )}
 
         {status === 'success' && !isSuccessEmpty && (
-          <ResultsPlaceholder
+          <StudyView
             data={data}
-            warnings={warnings}
-            onNewNotes={() => {
-              reset();
-              setNotes('');
-            }}
-            onEditNotes={reset}
+            notes={notes}
+            onEditNotes={handleEditNotes}
+            onNewNotes={handleNewNotes}
+            onRegenerate={handleRegenerate}
           />
         )}
 
