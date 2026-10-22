@@ -1,6 +1,6 @@
 # Study Assistant
 
-Pasted notes -> flashcards + quiz, structured JSON from an LLM, not a chatbot.
+Pasted notes -> flashcards + quiz, structured JSON from an LLM.
 
 ## Setup
 
@@ -22,10 +22,10 @@ Pasted notes -> flashcards + quiz, structured JSON from an LLM, not a chatbot.
 ## Usage
 
 1. Paste notes (20-8000 chars) or click "Try sample notes".
-2. Click "Generate" to create materials.
+2. Click "Generate" to create flashcards and quiz.
 3. Flip flashcards (mark "Got it" / "Still learning", and use "Review missed").
 4. Take the quiz with instant feedback and explanations.
-5. Use "Retest wrong answers" to practice missed questions.
+5. Use "Retest wrong answers" to practice questions you got wrong.
 
 ## Architecture
 
