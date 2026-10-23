@@ -574,7 +574,7 @@ body {
 @keyframes card-enter-learning {
   0% {
     opacity: 0;
-    transform: translateX(-28px);
+    transform: translateX(28px);
     box-shadow: 0 0 20px 2px var(--orange);
   }
   50% {
