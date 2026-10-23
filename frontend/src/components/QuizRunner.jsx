@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuizSession } from '../hooks/useQuizSession.js';
 
 function ResultsBanner({ round, percentage, correctCount, totalQuestions, wrongCount }) {
@@ -151,8 +151,29 @@ export function QuizRunner({ quiz = [], onBackToFlashcards = null }) {
   const { state, dispatch } = useQuizSession(quiz);
   const { queue, round, index, selected, answers, phase } = state;
 
+  const [teaOpen, setTeaOpen] = useState(false);
+  const [teaIndex, setTeaIndex] = useState(0);
+  const [teaDir, setTeaDir] = useState(null);
+
   const questionHeadingRef = useRef(null);
   const resultsHeadingRef = useRef(null);
+  const teaQuestionRef = useRef(null);
+
+  // Reset tea state when quiz prop changes
+  useEffect(() => {
+    setTeaOpen(false);
+    setTeaIndex(0);
+    setTeaDir(null);
+  }, [quiz]);
+
+  // Reset tea state whenever phase leaves 'finished'
+  useEffect(() => {
+    if (phase !== 'finished') {
+      setTeaOpen(false);
+      setTeaIndex(0);
+      setTeaDir(null);
+    }
+  }, [phase]);
 
   // Focus management: move focus to question heading on question change
   useEffect(() => {
@@ -161,12 +182,33 @@ export function QuizRunner({ quiz = [], onBackToFlashcards = null }) {
     }
   }, [index, phase]);
 
-  // Focus management: move focus to results heading when quiz finishes
+  // Focus management: move focus to results heading when quiz finishes and tea is not open
   useEffect(() => {
-    if (phase === 'finished' && resultsHeadingRef.current) {
+    if (phase === 'finished' && !teaOpen && resultsHeadingRef.current) {
       resultsHeadingRef.current.focus();
     }
-  }, [phase]);
+  }, [phase, teaOpen]);
+
+  // Focus management: move focus to tea card heading (the question) when tea is open and card changes
+  useEffect(() => {
+    if (phase === 'finished' && teaOpen && teaQuestionRef.current) {
+      teaQuestionRef.current.focus();
+    }
+  }, [phase, teaOpen, teaIndex]);
+
+  const handleRetestWrong = () => {
+    setTeaOpen(false);
+    setTeaIndex(0);
+    setTeaDir(null);
+    dispatch({ type: 'RETEST_WRONG' });
+  };
+
+  const handleRestart = () => {
+    setTeaOpen(false);
+    setTeaIndex(0);
+    setTeaDir(null);
+    dispatch({ type: 'RESTART' });
+  };
 
   if (!queue || queue.length === 0) {
     return (
@@ -189,8 +231,14 @@ export function QuizRunner({ quiz = [], onBackToFlashcards = null }) {
       ? 'Correct.'
       : `Incorrect, the answer is ${currentQ.options[currentQ.correctIndex]}.`;
   } else if (phase === 'finished') {
-    const correctCount = Object.values(answers).filter((a) => a.correct).length;
-    liveAnnouncement = `Quiz finished. Your score is ${correctCount} of ${totalQuestions}.`;
+    const wrongQuestions = queue.filter((q) => answers[q.id] && !answers[q.id].correct);
+    const wrongCount = wrongQuestions.length;
+    if (teaOpen && wrongCount > 0) {
+      liveAnnouncement = `Tea card ${teaIndex + 1} of ${wrongCount}`;
+    } else {
+      const correctCount = Object.values(answers).filter((a) => a.correct).length;
+      liveAnnouncement = `Quiz finished. Your score is ${correctCount} of ${totalQuestions}.`;
+    }
   }
 
   if (phase === 'finished') {
@@ -199,6 +247,160 @@ export function QuizRunner({ quiz = [], onBackToFlashcards = null }) {
     const wrongQuestions = queue.filter((q) => answers[q.id] && !answers[q.id].correct);
     const wrongCount = wrongQuestions.length;
     const isFlawless = round === 1 && percentage === 100;
+
+    // Tea view: one card at a time for missed questions
+    if (teaOpen && wrongCount > 0) {
+      const currentTeaQ = wrongQuestions[teaIndex] || wrongQuestions[0];
+      const answerRecord = answers[currentTeaQ.id];
+      const userChoice =
+        answerRecord && answerRecord.selected !== null
+          ? currentTeaQ.options[answerRecord.selected]
+          : 'Skipped';
+      const correctChoice = currentTeaQ.options[currentTeaQ.correctIndex];
+      const isLastCard = teaIndex === wrongCount - 1;
+
+      let animClass = '';
+      if (teaDir === 'next') animClass = 'enter-next';
+      else if (teaDir === 'prev') animClass = 'enter-prev';
+
+      const handlePrevTea = () => {
+        if (teaIndex > 0) {
+          setTeaDir('prev');
+          setTeaIndex((i) => i - 1);
+        }
+      };
+
+      const handleNextTea = () => {
+        if (teaIndex < wrongCount - 1) {
+          setTeaDir('next');
+          setTeaIndex((i) => i + 1);
+        }
+      };
+
+      return (
+        <div className="card quiz-card tea-runner-card">
+          {/* Persistent live region for screen readers */}
+          <div className="sr-only" aria-live="polite" aria-atomic="true">
+            {liveAnnouncement}
+          </div>
+
+          <div className="tea-nav-header">
+            <div className="tea-header-left">
+              <span className="tea-icon-badge" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
+                  <path d="M3 8h14v7a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
+                  <line x1="6" y1="2" x2="6" y2="4" />
+                  <line x1="10" y1="2" x2="10" y2="4" />
+                  <line x1="14" y1="2" x2="14" y2="4" />
+                </svg>
+              </span>
+              <h2 className="tea-main-title">Tea Time</h2>
+            </div>
+
+            <div className="tea-progress-info">
+              <span className="tea-counter">
+                {teaIndex + 1} of {wrongCount}
+              </span>
+              <div className="tea-dots-row" aria-hidden="true">
+                {wrongQuestions.map((_, dotIdx) => (
+                  <span
+                    key={dotIdx}
+                    className={`tea-dot ${dotIdx === teaIndex ? 'tea-dot-active' : ''}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="tea-nav-buttons">
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={handlePrevTea}
+                disabled={teaIndex === 0}
+                aria-label="Previous tea"
+              >
+                Prev
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={handleNextTea}
+                disabled={teaIndex === wrongCount - 1}
+                aria-label="Next tea"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+
+          <div
+            key={currentTeaQ.id}
+            className={`tea-single-card ${animClass}`.trim()}
+          >
+            <h3
+              ref={teaQuestionRef}
+              tabIndex={-1}
+              className="tea-item-question focus-outline-none"
+            >
+              {currentTeaQ.question}
+            </h3>
+            <div className="tea-item-details">
+              <p className="tea-user-choice">
+                <span className="tea-label">You said:</span> {userChoice}
+              </p>
+              <p className="tea-correct-choice">
+                <span className="tea-label">Plot twist:</span> {correctChoice}
+              </p>
+              {currentTeaQ.explanation && (
+                <p className="tea-explanation">
+                  <span className="tea-label">The tea:</span> {currentTeaQ.explanation}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {isLastCard ? (
+            <div className="tea-last-block">
+              <h4 className="tea-last-heading">Ready to spill the study gossip?</h4>
+              <div className="tea-last-actions">
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleRetestWrong}
+                >
+                  Retest my missed questions ({wrongCount})
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={handleRestart}
+                >
+                  Retake all
+                </button>
+                <button
+                  type="button"
+                  className="btn-text tea-back-btn"
+                  onClick={() => setTeaOpen(false)}
+                >
+                  Back to results
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="tea-nav-bottom">
+              <button
+                type="button"
+                className="btn-text tea-back-btn"
+                onClick={() => setTeaOpen(false)}
+              >
+                Back to results
+              </button>
+            </div>
+          )}
+        </div>
+      );
+    }
 
     return (
       <div className={`card quiz-card quiz-results-card ${isFlawless ? 'card-shine' : ''}`.trim()}>
@@ -233,55 +435,31 @@ export function QuizRunner({ quiz = [], onBackToFlashcards = null }) {
         </div>
 
         {wrongCount > 0 && (
-          <div className="tea-time-container">
-            <div className="tea-time-header">
-              <h3 className="tea-time-title">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
-                  <path d="M3 8h14v7a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
-                  <line x1="6" y1="2" x2="6" y2="4" />
-                  <line x1="10" y1="2" x2="10" y2="4" />
-                  <line x1="14" y1="2" x2="14" y2="4" />
-                </svg>
-                <span>Tea Time</span>
+          <div className="tea-teaser-card">
+            <span className="tea-teaser-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
+                <path d="M3 8h14v7a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
+                <line x1="6" y1="2" x2="6" y2="4" />
+                <line x1="10" y1="2" x2="10" y2="4" />
+                <line x1="14" y1="2" x2="14" y2="4" />
+              </svg>
+            </span>
+            <div className="tea-teaser-content">
+              <h3 className="tea-teaser-heading">
+                I have a secret about your {wrongCount === 1 ? '1 missed question.' : `${wrongCount} missed questions.`}
               </h3>
-              <p className="tea-time-subtitle">
-                The ones that got you, and the real story. ({wrongCount})
-              </p>
-            </div>
-
-            <div className="tea-time-list">
-              {wrongQuestions.map((q, itemIndex) => {
-                const answerRecord = answers[q.id];
-                const userChoice =
-                  answerRecord && answerRecord.selected !== null
-                    ? q.options[answerRecord.selected]
-                    : 'Skipped';
-                const correctChoice = q.options[q.correctIndex];
-
-                return (
-                  <div
-                    key={q.id}
-                    className="tea-item-card"
-                    style={{ '--delay': `${Math.min(itemIndex * 90, 600)}ms` }}
-                  >
-                    <p className="tea-item-question">{q.question}</p>
-                    <div className="tea-item-details">
-                      <p className="tea-user-choice">
-                        <span className="tea-label">You said:</span> {userChoice}
-                      </p>
-                      <p className="tea-correct-choice">
-                        <span className="tea-label">Plot twist:</span> {correctChoice}
-                      </p>
-                      {q.explanation && (
-                        <p className="tea-explanation">
-                          <span className="tea-label">The tea:</span> {q.explanation}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+              <button
+                type="button"
+                className="btn btn-secondary tea-teaser-btn"
+                onClick={() => {
+                  setTeaDir(null);
+                  setTeaIndex(0);
+                  setTeaOpen(true);
+                }}
+              >
+                Want to know?
+              </button>
             </div>
           </div>
         )}
@@ -291,7 +469,7 @@ export function QuizRunner({ quiz = [], onBackToFlashcards = null }) {
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => dispatch({ type: 'RETEST_WRONG' })}
+              onClick={handleRetestWrong}
             >
               Retest wrong answers ({wrongCount})
             </button>
@@ -299,7 +477,7 @@ export function QuizRunner({ quiz = [], onBackToFlashcards = null }) {
           <button
             type="button"
             className={wrongCount > 0 ? 'btn btn-secondary' : 'btn btn-primary'}
-            onClick={() => dispatch({ type: 'RESTART' })}
+            onClick={handleRestart}
           >
             Retake all
           </button>
