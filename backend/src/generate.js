@@ -87,19 +87,56 @@ export async function generateStudyMaterial(notes) {
   // Attempt 1
   const rawContent = await callOpenAI(userMessage);
 
+  let firstResult;
   try {
-    return validateStudyMaterial(rawContent);
+    firstResult = validateStudyMaterial(rawContent);
   } catch (validationErr) {
-    // Only retry if it's a retryable AppError
+    // Never retry NOT_STUDYABLE or any non-retryable AppError (REFUSAL, etc.)
     if (!(validationErr instanceof AppError) || !validationErr.retryable) {
       throw validationErr;
     }
 
-    // Append one sentence stating the problem code and what to fix, then retry ONCE
-    const fixSentence = `The previous attempt failed with code ${validationErr.code}: please fix this issue and generate valid, complete study material.`;
+    // Attempt 1 threw a retryable error: provide specific corrective feedback and retry once
+    const fixSentence = `The previous attempt failed with code ${validationErr.code}: ${validationErr.message}. Please fix this and follow the schema exactly.`;
     const retryUserMessage = `${userMessage}\n\n${fixSentence}`;
 
     const retryContent = await callOpenAI(retryUserMessage);
     return validateStudyMaterial(retryContent);
+  }
+
+  // Check if attempt 1 produced partial results (missing flashcards or quiz)
+  const isPartial =
+    firstResult.warnings.includes('FLASHCARDS_UNAVAILABLE') ||
+    firstResult.warnings.includes('QUIZ_UNAVAILABLE');
+
+  if (!isPartial) {
+    return firstResult;
+  }
+
+  // Attempt 1 was partial: name the missing set(s) and retry once
+  const missingSets = [];
+  if (firstResult.warnings.includes('FLASHCARDS_UNAVAILABLE')) {
+    missingSets.push('flashcards');
+  }
+  if (firstResult.warnings.includes('QUIZ_UNAVAILABLE')) {
+    missingSets.push('quiz questions');
+  }
+
+  const fixSentence = `The previous attempt returned fewer than 3 valid ${missingSets.join(' and ')}. Please return the full set of 8 flashcards and 6 quiz questions.`;
+  const retryUserMessage = `${userMessage}\n\n${fixSentence}`;
+
+  try {
+    const retryContent = await callOpenAI(retryUserMessage);
+    const secondResult = validateStudyMaterial(retryContent);
+
+    // Acceptance rule: keep retry result only if it has strictly fewer warnings than attempt 1;
+    // otherwise keep the first usable result.
+    if (secondResult.warnings.length < firstResult.warnings.length) {
+      return secondResult;
+    }
+    return firstResult;
+  } catch {
+    // If retry throws, keep the first usable result from attempt 1.
+    return firstResult;
   }
 }
