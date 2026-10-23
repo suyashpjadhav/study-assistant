@@ -4,6 +4,7 @@ import cors from 'cors';
 import { rateLimit } from 'express-rate-limit';
 import { AppError } from './errors.js';
 import { generateStudyMaterial } from './generate.js';
+import { checkNotes } from './inputCheck.js';
 
 dotenv.config();
 
@@ -40,6 +41,11 @@ app.post('/api/generate', async (req, res, next) => {
     const trimmed = notes.trim();
     if (trimmed.length < 20 || trimmed.length > 8000) {
       throw new AppError('INVALID_INPUT', 'Notes must be between 20 and 8000 characters.', { retryable: false });
+    }
+
+    const check = checkNotes(trimmed);
+    if (!check.ok) {
+      throw new AppError('INVALID_INPUT', check.message, { retryable: false });
     }
 
     const { data, warnings } = await generateStudyMaterial(trimmed);

@@ -165,6 +165,75 @@ body {
   color: var(--orange);
 }
 
+/* Inline Input Notice Card */
+.input-notice-card {
+  background-color: var(--surface-2);
+  border: 1px solid var(--orange);
+  border-left: 4px solid var(--yellow);
+  border-radius: calc(var(--radius) / 2);
+  padding: 0.875rem 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  animation: notice-shake-fade 0.4s ease-out;
+}
+
+.input-notice-icon {
+  color: var(--yellow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.input-notice-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.input-notice-message {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.input-notice-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+@keyframes notice-shake-fade {
+  0% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  20% {
+    opacity: 0.7;
+    transform: translateX(-6px);
+  }
+  40% {
+    opacity: 1;
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* Buttons */
 .btn {
   appearance: none;
@@ -877,5 +946,9 @@ body {
 
   .quiz-progress-fill {
     transition: none;
+  }
+
+  .input-notice-card {
+    animation: none;
   }
 }

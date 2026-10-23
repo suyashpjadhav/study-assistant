@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import { checkNotes } from '../utils/inputCheck.js';
+
 const SAMPLE_NOTES =
   'Photosynthesis is the process used by plants, algae, and cyanobacteria to convert light ' +
   'energy into chemical energy stored in glucose. Using sunlight, water from the soil, and ' +
@@ -8,6 +11,8 @@ const SAMPLE_NOTES =
   'for plant growth and form the foundation of Earth’s food chains.';
 
 export function InputForm({ notes, onNotesChange, onSubmit, isLoading, isWarmupReady }) {
+  const [notice, setNotice] = useState(null);
+
   const trimmed = notes.trim();
   const trimmedLength = trimmed.length;
   const isTooShort = trimmedLength < 20;
@@ -23,15 +28,36 @@ export function InputForm({ notes, onNotesChange, onSubmit, isLoading, isWarmupR
     disabledReason = `Exceeds 8,000 characters (${trimmedLength - 8000} characters over)`;
   }
 
+  const handleNotesChange = (val) => {
+    if (notice) {
+      setNotice(null);
+    }
+    onNotesChange(val);
+  };
+
   const handleSampleClick = () => {
+    if (notice) {
+      setNotice(null);
+    }
     onNotesChange(SAMPLE_NOTES);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!isDisabled) {
-      onSubmit();
+    if (isDisabled) return;
+
+    const result = checkNotes(notes);
+    if (!result.ok) {
+      setNotice({
+        message: result.message,
+        hint: result.hint,
+        id: Date.now(),
+      });
+      return;
     }
+
+    setNotice(null);
+    onSubmit();
   };
 
   return (
@@ -55,7 +81,7 @@ export function InputForm({ notes, onNotesChange, onSubmit, isLoading, isWarmupR
           id="notes-input"
           className="notes-textarea"
           value={notes}
-          onChange={(e) => onNotesChange(e.target.value)}
+          onChange={(e) => handleNotesChange(e.target.value)}
           placeholder="Paste or type your lecture notes, summaries, or study material here (min 20 characters)..."
           rows={10}
           disabled={isLoading}
@@ -64,6 +90,31 @@ export function InputForm({ notes, onNotesChange, onSubmit, isLoading, isWarmupR
           {notes.length} / 8000
         </div>
       </div>
+
+      {notice && (
+        <div key={notice.id} className="input-notice-card" role="alert">
+          <div className="input-notice-icon" aria-hidden="true">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          </div>
+          <div className="input-notice-content">
+            <p className="input-notice-message">{notice.message}</p>
+            {notice.hint && <p className="input-notice-hint">{notice.hint}</p>}
+          </div>
+        </div>
+      )}
 
       {!isWarmupReady && (
         <p className="warmup-hint" aria-live="polite">
