@@ -11,7 +11,7 @@ export function checkNotes(text) {
 
   // Rule 1: Language-friendly word count
   // If the text contains CJK characters (Han, Hiragana, Katakana, Hangul),
-  // skip the word rule and require at least 10 CJK characters. Otherwise require at least 4 words.
+  // skip the word rule and require at least 10 CJK characters. Otherwise require at least 6 words.
   const cjkMatches = trimmed.match(/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu);
   const cjkCount = cjkMatches ? cjkMatches.length : 0;
   const words = trimmed ? trimmed.split(/\s+/).filter(Boolean) : [];
@@ -26,7 +26,7 @@ export function checkNotes(text) {
       };
     }
   } else {
-    if (words.length < 4) {
+    if (words.length < 6) {
       return {
         ok: false,
         reason: 'TOO_FEW_WORDS',
