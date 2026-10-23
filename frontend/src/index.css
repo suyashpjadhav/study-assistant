@@ -499,6 +499,41 @@ body {
   flex: 1;
 }
 
+.study-view-toggles .btn:disabled,
+.study-view-toggles .btn[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+/* Study View Partial Notice Card */
+.study-notice-card {
+  background-color: var(--surface-2);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--orange);
+  border-radius: calc(var(--radius) / 2);
+  padding: 0.875rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.study-notice-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.study-notice-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
 .study-panel[hidden] {
   display: none !important;
 }

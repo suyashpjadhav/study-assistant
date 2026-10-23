@@ -27,7 +27,10 @@ function generateReducer(state, action) {
     case 'SUCCESS':
       return {
         status: 'success',
-        data: action.payload.data,
+        data: {
+          ...action.payload.data,
+          warnings: action.payload.warnings,
+        },
         warnings: action.payload.warnings,
         error: null,
         slow: false,
