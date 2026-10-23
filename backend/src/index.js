@@ -74,6 +74,8 @@ app.use((err, req, res, next) => {
     let status = 502;
     if (err.code === 'INVALID_INPUT') {
       status = 400;
+    } else if (err.code === 'NOT_STUDYABLE') {
+      status = 422;
     } else if (err.code === 'RATE_LIMITED') {
       status = 429;
     } else if (err.code === 'TIMEOUT') {

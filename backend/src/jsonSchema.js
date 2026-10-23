@@ -1,6 +1,7 @@
 export const studyMaterialJsonSchema = {
   type: 'object',
   properties: {
+    studyable: { type: 'boolean' },
     title: { type: 'string' },
     flashcards: {
       type: 'array',
@@ -26,6 +27,6 @@ export const studyMaterialJsonSchema = {
       },
     },
   },
-  required: ['title', 'flashcards', 'quiz'],
+  required: ['studyable', 'title', 'flashcards', 'quiz'],
   additionalProperties: false,
 };

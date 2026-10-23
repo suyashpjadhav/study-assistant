@@ -41,6 +41,10 @@ export function validateStudyMaterial(rawText) {
     throw new AppError('INVALID_JSON', 'Model returned malformed JSON', { retryable: true });
   }
 
+  if (json?.studyable === false) {
+    throw new AppError('NOT_STUDYABLE', "These notes don't look like study material.", { retryable: false });
+  }
+
   const env = Envelope.safeParse(json);
   if (!env.success) {
     throw new AppError('BAD_SHAPE', 'Model returned the wrong shape', {
