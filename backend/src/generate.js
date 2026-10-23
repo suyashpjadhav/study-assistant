@@ -77,7 +77,8 @@ async function callOpenAI(userContent) {
     if (isTimeoutError(err)) {
       throw new AppError('TIMEOUT', 'OpenAI request timed out after 20 seconds', { retryable: true });
     }
-    throw new AppError('UPSTREAM_ERROR', err.message || 'Upstream OpenAI error', { retryable: true });
+    console.error('OpenAI error:', err.status, err.message);
+    throw new AppError('UPSTREAM_ERROR', 'The AI service returned an error', { retryable: true });
   }
 }
 

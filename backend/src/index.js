@@ -9,6 +9,7 @@ import { checkNotes } from './inputCheck.js';
 dotenv.config();
 
 const app = express();
+app.set('trust proxy', 1);
 
 app.use(cors({ origin: process.env.ALLOWED_ORIGIN || true }));
 app.use(express.json({ limit: '50kb' }));
