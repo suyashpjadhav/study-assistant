@@ -58,7 +58,7 @@ export function FlashcardDeck({ flashcards = [] }) {
 
   const handlePrev = () => {
     if (index > 0) {
-      setLastAction('nav');
+      setLastAction('prev');
       setIndex((i) => i - 1);
       setFlipped(false);
     }
@@ -66,7 +66,7 @@ export function FlashcardDeck({ flashcards = [] }) {
 
   const handleNext = () => {
     if (index < deck.length - 1) {
-      setLastAction('nav');
+      setLastAction('next');
       setIndex((i) => i + 1);
       setFlipped(false);
     }

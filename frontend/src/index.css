@@ -546,8 +546,12 @@ body {
   animation: card-enter-learning 320ms ease-out forwards;
 }
 
-.flashcard-wrapper.enter-nav {
-  animation: card-enter-nav 180ms ease-out forwards;
+.flashcard-wrapper.enter-next {
+  animation: card-enter-next 200ms ease-out forwards;
+}
+
+.flashcard-wrapper.enter-prev {
+  animation: card-enter-prev 200ms ease-out forwards;
 }
 
 @keyframes card-enter-known {
@@ -584,12 +588,25 @@ body {
   }
 }
 
-@keyframes card-enter-nav {
+@keyframes card-enter-next {
   0% {
     opacity: 0;
+    transform: translateX(16px);
   }
   100% {
     opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes card-enter-prev {
+  0% {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
@@ -1140,7 +1157,8 @@ body {
 
   .flashcard-wrapper.enter-known,
   .flashcard-wrapper.enter-learning,
-  .flashcard-wrapper.enter-nav {
+  .flashcard-wrapper.enter-next,
+  .flashcard-wrapper.enter-prev {
     animation: none;
     transform: none;
     box-shadow: none;
