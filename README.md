@@ -39,6 +39,16 @@ Pasted notes -> flashcards + quiz, structured JSON from an LLM.
 4. Take the quiz with instant feedback and explanations.
 5. Use "Retest wrong answers" to practice questions you got wrong.
 
+## Mobile
+
+The app is built to work on phone screens as well. To check it on a laptop without a phone:
+
+1. Open the live app in Chrome.
+2. Press F12 (or Ctrl+Shift+I) to open DevTools.
+3. Press Ctrl+Shift+M to turn on the device toolbar, then pick a phone size such as iPhone 12 or set the width to 375px.
+
+The layout is fluid (max-width and flexbox), the textarea uses a 16px font so iOS does not zoom in, and buttons are at least 44px tall for touch.
+
 ## Architecture
 
 Study Assistant uses an Express backend to generate structured study materials from arbitrary notes, keeping the OpenAI API key secure on the server. The browser issues a POST request to Express, which queries OpenAI using `gpt-4o-mini` with strict Structured Outputs schema enforcement. The model output is parsed and strictly validated with Zod before returning to the frontend client.
