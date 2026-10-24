@@ -68,7 +68,7 @@ The OpenAI API key remains server-side at all times and is never referenced in f
 - `components/EmptyState.jsx`: Fallback display when generated sets are empty.
 - `components/StudyView.jsx`: Study layout managing tab navigation between flashcards and quiz.
 - `components/FlashcardDeck.jsx`: Card flip deck with mastery tracking and missed-card review.
-- `components/QuizRunner.jsx`: Interactive quiz runner with score tiers, missed-question review cards ('tea cards' with answers and explanations), and retest flow.
+- `components/QuizRunner.jsx`: Interactive quiz runner with score tiers, review cards for missed questions (with answers and explanations), and retest flow.
 
 ## Handling Bad AI Output
 
@@ -113,7 +113,6 @@ Grouped list below. The full version with future improvements is in the [LIMITAT
 
 ### Frontend
 
-- The "waking up the server" hint can stay on screen if the health ping fails (for example, a browser that blocks `/health`, or the backend being down). It only goes away when the ping succeeds.
 - Disabling the quiz option buttons during the feedback phase makes keyboard focus drop to the page body.
 - Regenerate runs everything again and resets progress in both flashcards and quiz.
 - Dark theme only. No light mode.
@@ -123,7 +122,6 @@ Grouped list below. The full version with future improvements is in the [LIMITAT
 ### Hosting
 
 - The backend runs on a free tier, so the first request after idle can take up to about a minute.
-- Browsers like Brave can block the health ping, so the warmup does not work there. The input panel keeps showing "Connecting to server" even though the app works fine.
 
 
 ## Time Spent
@@ -136,7 +134,6 @@ About 7 h 55 min in total: 7 h 40 min of building plus 15 min of deployment.
 
 - Log more on the server (timeouts, rate limits, validation failures), never the key or notes.
 - Separate non-retryable code for a bad API key, and hide the retry button for it.
-- Stop the warmup hint when the health ping fails.
 - Fix keyboard focus retention on quiz option selection during the feedback phase.
 - Unit tests for the validator, the retry logic and the quiz reducer.
 - Persist sessions, shuffle quiz options, keyboard shortcuts.
