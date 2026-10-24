@@ -6,13 +6,18 @@ Pasted notes -> flashcards + quiz, structured JSON from an LLM.
 
 ## Setup
 
-- Prerequisites: Node.js 18.11+ (backend dev uses `node --watch`)
+- Prerequisites: Node.js 18.11+ (backend dev uses `node --watch`), Git, and an OpenAI API key.
+- Clone the repo and go into the folder:
+  ```bash
+  git clone https://github.com/suyashpjadhav/study-assistant.git
+  cd study-assistant
+  ```
 - Copy the environment template:
   ```cmd
   copy backend\.env.example backend\.env
   ```
   On macOS/Linux: `cp backend/.env.example backend/.env`
-
+  
 - Add your own OpenAI API key to `backend/.env`:
   ```env
   OPENAI_API_KEY=your-api-key-here
@@ -21,7 +26,7 @@ Pasted notes -> flashcards + quiz, structured JSON from an LLM.
   ```cmd
   npm install && npm start
   ```
-- Frontend runs at [http://localhost:5173](http://localhost:5173), backend runs on port 3001.
+- Open http://localhost:5173. The frontend runs there and the backend runs on port 3001.
 - Environment variables:
   - Backend: `OPENAI_API_KEY` (required), `PORT` (default 3001), `ALLOWED_ORIGIN` (CORS origin; if unset, all origins are allowed, so set it to the frontend URL in production).
   - Frontend: `VITE_API_URL` (backend URL; empty in dev routes through the Vite proxy to localhost:3001, required in production when hosted on a different domain).
