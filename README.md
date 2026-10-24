@@ -17,7 +17,7 @@ Pasted notes -> flashcards + quiz, structured JSON from an LLM.
   copy backend\.env.example backend\.env
   ```
   On macOS/Linux: `cp backend/.env.example backend/.env`
-  
+
 - Add your own OpenAI API key to `backend/.env`:
   ```env
   OPENAI_API_KEY=your-api-key-here
@@ -127,7 +127,7 @@ Grouped list below. The full version with future improvements is in the [LIMITAT
 ### Hosting
 
 - The backend runs on a free tier, so the first request after idle can take up to about a minute.
-
+- Browsers like Brave can block the health ping, so the hint does not work there.
 
 ## Time Spent
 
